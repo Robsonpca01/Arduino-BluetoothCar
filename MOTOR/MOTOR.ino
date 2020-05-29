@@ -10,28 +10,29 @@
 #include <SoftwareSerial.h>
 
 // Pin definition
-const unsigned int LEFT_IN1_A = 2;
-const unsigned int LEFT_IN2_A = 3;
+const unsigned int LEFT_IN1_A = 6;
+const unsigned int LEFT_IN2_A = 7;
 
-const unsigned int LEFT_IN1_B = 4;
-const unsigned int LEFT_IN2_B = 5;
+const unsigned int LEFT_IN1_B = 8;
+const unsigned int LEFT_IN2_B = 9;
 
 // const unsigned int EN_A = 3;
-const unsigned int RIGHT_IN1_A = 6;
-const unsigned int RIGHT_IN2_A = 7;
+const unsigned int RIGHT_IN1_A = 10;
+const unsigned int RIGHT_IN2_A = 11;
 
-const unsigned int RIGHT_IN1_B = 8;
-const unsigned int RIGHT_IN2_B = 9;
+const unsigned int RIGHT_IN1_B = 12;
+const unsigned int RIGHT_IN2_B = 13;
 // const unsigned int EN_B = 9;
 
 int stepA = 1;
 
 int inByte;
 
-char forward = 0x10;
-char backward = 0x11;
-char right = 0x12;
-char left = 0x13;
+const char forward = 'F';
+const char backward = 'B';
+const char stop = 'P';
+const char right = 'R';
+const char left = 'L';
 
 long lastCommandReceivedAt;
 
@@ -39,7 +40,7 @@ long lastCommandReceivedAt;
 L298NX2 rightMotors(RIGHT_IN1_A, RIGHT_IN2_A, RIGHT_IN1_B, RIGHT_IN2_B);
 L298NX2 leftMotors(LEFT_IN1_A, LEFT_IN2_A, LEFT_IN1_B, LEFT_IN2_B);
 
-SoftwareSerial bluetoothSerial(2, 3); // RX, TX
+SoftwareSerial bluetoothSerial(3, 2); // RX, TX
 
 void setup()
 {
@@ -56,8 +57,8 @@ void setup()
   Serial.println("Inicializando!");
 
   // Set initial speed for both motors
-  rightMotors.setSpeed(100);
-  leftMotors.setSpeed(100);
+  //  rightMotors.setSpeed(100);
+  //  leftMotors.setSpeed(100);
 }
 
 void loop()
@@ -75,53 +76,59 @@ void loop()
   {
     stopAllMotors(); //stop all the motors
     lastCommandReceivedAt = millis(); //restart the counter
-
+    inByte = 0;
     //parando o motor depois de um tempo X sem comando evitamos que ele fique parado em um certo comando por conta da perca de conexão do bluetooth, ou travamento do aplicativo, ou no caso da tela do celular apagar.
   }
 
 
-  switch (stepA)
+  switch (inByte)
   {
-    case 1:
+    case forward:
+      Serial.println("To indo pra frente");
       // Tell both motors to go forward (may depend by your wiring)
-      //      rightMotors.forwardA();
-      //      rightMotors.backwardB();
-      //      leftMotors.forwardA();
-      //      leftMotors.backwardB();
+      rightMotors.forward();
+      leftMotors.forward();
 
       break;
 
-    case 2:
-      // Change individual side speeds
-      rightMotors.setSpeed(255);
-      leftMotors.setSpeed(90);
+    case backward:
+      Serial.println("To indo pra tras");
+      rightMotors.backward();
+      leftMotors.backward();
 
       break;
 
-    case 3:
+    case stop:
+      Serial.println("Parando");
       // Stop
       rightMotors.stop();
       leftMotors.stop();
       break;
 
-    case 4:
+    case right:
+      Serial.println("direita");
+      rightMotors.backward();
+      leftMotors.forward();
       break;
 
-    case 5:
+    case left:
+      Serial.println("esquerda");
+      leftMotors.backward();
+      rightMotors.forward();
       break;
   }
 
-  if (stepA < 5)
-  {
-    stepA++;
-  }
-  else
-  {
-    stepA = 1;
-  }
+  //  if (stepA < 5)
+  //  {
+  //    stepA++;
+  //  }
+  //  else
+  //  {
+  //    stepA = 1;
+  //  }
 
-  printSomeInfo();
-  delay(3000);
+  //  printSomeInfo();
+  delay(30);
 
 
 
@@ -186,7 +193,7 @@ void printSomeInfo()
 }
 
 
-void stopAllMotors(){
+void stopAllMotors() {
   rightMotors.stop();
   leftMotors.stop();
 }
